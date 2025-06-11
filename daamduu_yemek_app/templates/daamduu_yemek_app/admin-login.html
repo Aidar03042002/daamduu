@@ -1,0 +1,174 @@
+{% extends "daamduu_yemek_app/base.html" %}
+{% load static %}
+
+{% block title %}Yönetici Girişi | Daamduu Yemek{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-login-section {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: url('{% static "images/bg/bg-21.jpg" %}') no-repeat center center/cover;
+        padding: 2rem 0;
+    }
+
+    .admin-login-card {
+        backdrop-filter: blur(15px);
+        background-color: rgba(255, 255, 255, 0.74);
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+        border-radius: 20px;
+        padding: 2rem;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .admin-login-title {
+        color: #333;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .admin-login-subtitle {
+        color: #666;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #333;
+        font-weight: 500;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: rgba(255, 255, 255, 0.9);
+        transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: #ff6600;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(255, 102, 0, 0.1);
+    }
+
+    .btn-orange {
+        background-color: #ff6600;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        width: 100%;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+
+    .btn-orange:hover {
+        background-color: #e65c00;
+    }
+
+    .btn-link {
+        color: #ff6600;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .btn-link:hover {
+        color: #e65c00;
+    }
+
+    .alert {
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="admin-login-section">
+    <div class="admin-login-card">
+        <h2 class="admin-login-title" data-lang-tr="Yönetici Girişi" data-lang-kg="Администратор кириши">
+            Yönetici Girişi
+        </h2>
+        <p class="admin-login-subtitle" data-lang-tr="Yönetici hesabınızla giriş yapın."
+            data-lang-kg="Администратордук эсебиңиз менен кириңиз.">
+            Yönetici hesabınızla giriş yapın.
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" action="{% url 'daamduu_yemek:admin_login' %}" class="admin-login-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="email" data-lang-tr="E-posta" data-lang-kg="Электрондук почта">E-posta</label>
+                <input type="email" class="form-control" id="email" name="email" required
+                    data-placeholder-tr="E-posta adresiniz" data-placeholder-kg="Электрондук почтаңыз"
+                    placeholder="E-posta adresiniz" />
+            </div>
+            <div class="form-group">
+                <label for="password" data-lang-tr="Şifre" data-lang-kg="Сыр сөз">Şifre</label>
+                <input type="password" class="form-control" id="password" name="password" required
+                    data-placeholder-tr="Şifreniz" data-placeholder-kg="Сыр сөзүңүз"
+                    placeholder="Şifreniz" />
+            </div>
+            <button type="submit" class="btn-orange" data-lang-tr="Giriş Yap" data-lang-kg="Кирүү">
+                Giriş Yap
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'daamduu_yemek:login' %}" class="btn-link" 
+               data-lang-tr="Normal Girişe Dön" data-lang-kg="Кадимки киришке кайтуу">
+                Normal Girişe Dön
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const lang = new URLSearchParams(window.location.search).get('lang') || 'kg';
+
+    // Metin çevirilerini uygula
+    document.querySelectorAll('[data-lang-tr]').forEach(el => {
+        el.textContent = el.getAttribute(`data-lang-${lang}`);
+    });
+
+    // Placeholder çevirilerini uygula
+    document.querySelectorAll("input[data-placeholder-tr]").forEach(input => {
+        const newPlaceholder = input.getAttribute(`data-placeholder-${lang}`);
+        if (newPlaceholder) {
+            input.setAttribute("placeholder", newPlaceholder);
+        }
+    });
+
+    // LOGO DEĞİŞİMİ
+    const logo = document.getElementById('logo-img');
+    if (logo) {
+        if (lang === 'kg') {
+            logo.src = "{% static 'images/Daamduu Tamak logo.png' %}";
+        } else {
+            logo.src = "{% static 'images/Lezzetli Yemek logo.png' %}";
+        }
+    }
+</script>
+{% endblock %}
