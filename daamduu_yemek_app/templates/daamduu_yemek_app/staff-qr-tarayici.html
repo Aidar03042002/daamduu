@@ -38,64 +38,13 @@
     <p class="mb-3 text-muted" data-lang-tr="Kamerayı Kullanarak QR Kodu Tarayın." data-lang-kg="Камераны колдонуп QR код сканда."></p>
     <div id="reader"></div>
     <div id="result-message"></div>
+    <form style="display:none;">{% csrf_token %}</form>
 </main>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
-function showMessage(message, isSuccess) {
-    const resultDiv = document.getElementById('result-message');
-    resultDiv.innerHTML = `
-        <div class="alert alert-${isSuccess ? 'success' : 'danger'} alert-dismissible fade show" role="alert">
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    `;
-}
-
-async function verifyQRCode(qrData) {
-    try {
-        const response = await fetch("{% url 'daamduu_yemek:verify_qr' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: `qr_data=${encodeURIComponent(qrData)}`
-        });
-        
-        const data = await response.json();
-        showMessage(data.message, data.success);
-        
-        if (data.success) {
-            // Stop scanning after successful verification
-            html5QrCode.stop();
-        }
-    } catch (error) {
-        showMessage('QR kod doğrulama hatası', false);
-    }
-}
-
-function onScanSuccess(decodedText, decodedResult) {
-    verifyQRCode(decodedText);
-}
-
-function onScanFailure(error) {
-    // Handle scan failure, usually ignore
-    console.warn(`QR scan error: ${error}`);
-}
-
-const html5QrCode = new Html5Qrcode("reader");
-const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-html5QrCode.start(
-    { facingMode: "environment" },
-    config,
-    onScanSuccess,
-    onScanFailure
-);
-
 document.addEventListener("DOMContentLoaded", function () {
     const lang = new URLSearchParams(window.location.search).get('lang') || 'kg';
     document.querySelectorAll('[data-lang-tr]').forEach(el => {
@@ -114,6 +63,54 @@ document.addEventListener("DOMContentLoaded", function () {
         logo.src = lang === 'kg'
             ? "{% static 'images/Daamduu Tamak logo.png' %}"
             : "{% static 'images/Lezzetli Yemek logo.png' %}";
+    }
+
+    // QR сканер
+    function showMessage(message, isSuccess) {
+        const resultDiv = document.getElementById('result-message');
+        resultDiv.innerHTML = `
+            <div class="alert alert-${isSuccess ? 'success' : 'danger'} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+    }
+
+    async function verifyQRCode(qrData) {
+        try {
+            const response = await fetch("{% url 'daamduu_yemek:verify_qr' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `qr_data=${encodeURIComponent(qrData)}`
+            });
+            const data = await response.json();
+            showMessage(data.message, data.success);
+            if (data.success && typeof html5QrCode !== 'undefined') {
+                html5QrCode.stop();
+            }
+        } catch (error) {
+            showMessage('QR код doğrulama hatası', false);
+        }
+    }
+
+    if (typeof Html5Qrcode !== "undefined") {
+        const html5QrCode = new Html5Qrcode("reader");
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            function onScanSuccess(decodedText, decodedResult) {
+                verifyQRCode(decodedText);
+            },
+            function onScanFailure(error) {
+                // Можно игнорировать
+            }
+        );
+    } else {
+        document.getElementById('reader').innerHTML = '<div class="alert alert-danger">QR сканер не загрузился. Проверьте интернет и скрипты.</div>';
     }
 });
 </script>
