@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', include('daamduu_yemek_app.urls')),
-    path('django-admin/', admin.site.urls),
+    path('admin/', admin.site.urls),  # Standard Django admin URL
 ]
 
 # Add static and media URLs in development
